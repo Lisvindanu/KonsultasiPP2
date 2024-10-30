@@ -1,1 +1,2 @@
-qwe, 123, Pria, Ya, Simpanan, 49 Juta, Mon Oct 28 05:55:05 WIB 2024, Pelajar, awe
+adada, sdasdadsadad, Pria, Ya, Tabungan, 19 Juta, Mon Oct 28 00:00:00 GMT+07:00 2024, Pegawai, adsadsasda
+adadadsaadada, sdasdadsadadadasdada, Wanita, Ya, Simpanan, 59 Juta, Mon Oct 28 00:00:00 GMT+07:00 2024, Bank, adsadsasda

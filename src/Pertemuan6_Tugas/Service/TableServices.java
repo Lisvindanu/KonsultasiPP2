@@ -1,18 +1,17 @@
 package Pertemuan6_Tugas.Service;
 
 import Pertemuan6_Tugas.GUI.*;
-
-import javax.swing.*;
-import javax.swing.table.DefaultTableModel;
 import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Date;
+import javax.swing.*;
+import javax.swing.table.DefaultTableModel;
 
 public class TableServices {
 
-    private FormPanel formPanel;
-    private DefaultTableModel tableModel;
+    private final FormPanel formPanel;
+    private final DefaultTableModel tableModel;
 
     private String nama;
     private String noHp;
@@ -24,13 +23,18 @@ public class TableServices {
     private String pekerjaan;
     private String deskripsi;
 
+
     public TableServices(DefaultTableModel tableModel, FormPanel formPanel) {
         this.tableModel = tableModel;
         this.formPanel = formPanel;
+
+        // Debug: print the identity of the model to verify consistency
+        System.out.println("Model identity in TableServices: " + System.identityHashCode(tableModel));
     }
-public DefaultTableModel getTableModel() {
-        return tableModel;
-}
+
+    public DefaultTableModel getTableModel() {
+        return tableModel; // Ensure it's the same instance
+    }
 
     private boolean validateInputs() {
         if (nama.isEmpty()) {
@@ -87,51 +91,41 @@ public DefaultTableModel getTableModel() {
         String[] data = {
               nama, noHp, jenisKelamin, wargaNegaraAsing, jenisTabungan, frekuensiTransaksi, tanggalLahir, pekerjaan, deskripsi
         };
-        tableModel.addRow(data);
+        SwingUtilities.invokeLater(() -> {
+            tableModel.addRow(data); // Add data to the model
+            System.out.println("Model identity during addition: " + System.identityHashCode(tableModel)); // Debug
+            System.out.println("Row added (EDT). Current row count: " + tableModel.getRowCount()); // Debugging
+        });
         System.out.println("baris ditambahkan " + tableModel.getRowCount());
 
         String biodata = String.format("Nama: %s\nNo HP: %s\nJenis Kelamin: %s\nWarga Negara Asing: %s\n" +
                 "Jenis Tabungan: %s\nFrekuensi Transaksi: %s\nTanggal Lahir: %s\nPekerjaan: %s\nDeskripsi: %s",
                  nama, noHp, jenisKelamin, wargaNegaraAsing, jenisTabungan, frekuensiTransaksi, tanggalLahir, pekerjaan, deskripsi);
-            saveDataToFile();
+            // saveDataToFile();
+
             formPanel.getAreaBiodata().setText(biodata);
             clearInput();
     }
     }
 
     public void saveDataToFile() {
-        BufferedWriter writer = null;
-        try {
-            writer = new BufferedWriter(new FileWriter("D:\\Kuliah Sem5\\Praktikum Pemrograman 2\\PP2\\data.txt"));
-            System.out.println("Menyimpan data...");
+        if (tableModel.getRowCount() == 0) {
+            JOptionPane.showMessageDialog(null, "Tidak ada data untuk disimpan.");
+            return;
+        }
 
-            if (tableModel.getRowCount() == 0) {
-                JOptionPane.showMessageDialog(null, "Tidak ada data untuk disimpan.");
-                return;
-            }
-
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter("data.txt"))) {
             for (int i = 0; i < tableModel.getRowCount(); i++) {
                 StringBuilder row = new StringBuilder();
                 for (int j = 0; j < tableModel.getColumnCount(); j++) {
                     row.append(tableModel.getValueAt(i, j)).append(", ");
                 }
-                String rowData = row.toString().replaceAll(", $", "");
-                System.out.println("Row to save: " + rowData); // Debug print
-                writer.write(rowData);
+                writer.write(row.toString().replaceAll(", $", ""));
                 writer.newLine();
             }
             JOptionPane.showMessageDialog(null, "Data berhasil disimpan.");
         } catch (IOException e) {
-            e.printStackTrace();
             JOptionPane.showMessageDialog(null, "Data gagal disimpan: " + e.getMessage());
-        } finally {
-            if (writer != null) {
-                try {
-                    writer.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
         }
     }
 

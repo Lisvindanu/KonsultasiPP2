@@ -2,61 +2,79 @@ package Pertemuan6_Tugas.Listener;
 
 import Pertemuan6_Tugas.GUI.FormPanel;
 import Pertemuan6_Tugas.Interface.MActionListener;
-import Pertemuan6_Tugas.Service.TableServices;
-import net.miginfocom.swing.MigLayout;
-
-import javax.swing.*;
+import java.awt.*;
 import java.awt.event.ActionEvent;
-
+import javax.swing.*;
+import javax.swing.table.DefaultTableModel;
+import java.io.*;
 
 public class Handler implements MActionListener {
     private JPanel mainPanel;
-    private JMenuItem loaditem;
-    private JMenuItem saveitem;
-    private JMenuItem exititem;
+    private JMenuItem loadItem;
+    private JMenuItem saveItem;
+    private JMenuItem exitItem;
     private JMenuItem formItem;
-    TableServices tableServices;
-    private JPanel curPanel;
+    private FormPanel formPanel;
+    private DefaultTableModel tableModel;
 
-    public Handler(JPanel mainPanel, JMenuItem loaditem, JMenuItem saveitem, JMenuItem exititem, JMenuItem formItem, TableServices tableServices) {
+    // Constructor with the required parameters
+    public Handler(JPanel mainPanel, JMenuItem loadItem, JMenuItem saveItem, JMenuItem exitItem,
+                   JMenuItem formItem, DefaultTableModel tableModel, FormPanel formPanel) {
         this.mainPanel = mainPanel;
-        this.loaditem = loaditem;
-        this.saveitem = saveitem;
-        this.exititem = exititem;
+        this.loadItem = loadItem;
+        this.saveItem = saveItem;
+        this.exitItem = exitItem;
         this.formItem = formItem;
-        this.tableServices = tableServices;
-
-
-        this.mainPanel.setLayout(new MigLayout("wrap 1", "[grow]", "[grow]"));
-        this.curPanel = new JPanel();
-        mainPanel.add(curPanel, "grow");
+        this.tableModel = tableModel;
+        this.formPanel = formPanel;
     }
 
     @Override
     public void handleAction(ActionEvent e) {
-        mainPanel.removeAll();
+        CardLayout cardLayout = (CardLayout) mainPanel.getLayout();
 
-        if (e.getSource() == loaditem) {
-            curPanel = new JPanel();
-            curPanel.add(new JLabel("Load Page"));
-        } else if (e.getSource() == saveitem) {
-            if(tableServices.getTableModel().getRowCount() > 0) {
-                tableServices.saveDataToFile();
-            } else {
-                JOptionPane.showMessageDialog(mainPanel, "Isi Data Terlebih dahulu");
-            }
-        } else if (e.getSource() == exititem) {
-            System.exit(0);
+        if (e.getSource() == loadItem) {
+            // Switch to Load Panel
+            cardLayout.show(mainPanel, "LoadPanel");
+        } else if (e.getSource() == saveItem) {
+            // Handle saving logic
+            SwingUtilities.invokeLater(() -> {
+                System.out.println("Attempting to save data. Current row count: " + tableModel.getRowCount());
+                System.out.println("Model identity during save: " + System.identityHashCode(tableModel)); // Debug
+
+                if (tableModel.getRowCount() > 0) {
+                    saveDataToFile();  // Call the save function
+                    JOptionPane.showMessageDialog(mainPanel, "Data saved successfully!");
+                } else {
+                    JOptionPane.showMessageDialog(mainPanel, "Please enter data first.");
+                }
+                cardLayout.show(mainPanel, "FormPanel");
+            });
+        } else if (e.getSource() == exitItem) {
+            System.exit(0); // Exit the application
         } else if (e.getSource() == formItem) {
-           curPanel = new FormPanel();
+            // Switch to Form Panel
+            cardLayout.show(mainPanel, "FormPanel");
+        }
+    }
+    private void saveDataToFile() {
+        if (tableModel.getRowCount() == 0) {
+            JOptionPane.showMessageDialog(null, "Tidak ada data untuk disimpan.");
+            return;
         }
 
-        mainPanel.add(curPanel, "grow");
-        mainPanel.revalidate();
-        mainPanel.repaint();
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter("data.txt"))) {
+            for (int i = 0; i < tableModel.getRowCount(); i++) {
+                StringBuilder row = new StringBuilder();
+                for (int j = 0; j < tableModel.getColumnCount(); j++) {
+                    row.append(tableModel.getValueAt(i, j)).append(", ");
+                }
+                writer.write(row.toString().replaceAll(", $", ""));
+                writer.newLine();
+            }
+            JOptionPane.showMessageDialog(null, "Data berhasil disimpan.");
+        } catch (IOException e) {
+            JOptionPane.showMessageDialog(null, "Data gagal disimpan: " + e.getMessage());
+        }
     }
-
-
-
-
 }

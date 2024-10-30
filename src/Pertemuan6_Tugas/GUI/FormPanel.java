@@ -1,19 +1,11 @@
 package Pertemuan6_Tugas.GUI;
 
-import javax.swing.*;
-import javax.swing.event.ListSelectionEvent;
-import javax.swing.event.ListSelectionListener;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.ItemEvent;
-import java.awt.event.ItemListener;
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
-import javax.swing.table.DefaultTableModel;
-
 import Pertemuan6_Tugas.Listener.*;
-import Pertemuan6_Tugas.Service.TableServices;
-import com.formdev.flatlaf.intellijthemes.FlatArcDarkOrangeIJTheme;
+
+import java.awt.*;
+import javax.swing.*;
+import javax.swing.table.DefaultTableModel;
+// import com.formdev.flatlaf.intellijthemes.FlatArcDarkOrangeIJTheme;
 
 
 public class FormPanel extends JPanel  {
@@ -32,12 +24,15 @@ public class FormPanel extends JPanel  {
    private JTable table;
    private DefaultTableModel tableModel;
 
-    public DefaultTableModel getTableModel() {
-        return tableModel;
-    }
+    // public DefaultTableModel getTableModel() {
+    //     return tableModel;
+    // }
 
-    public FormPanel() {
-       setLayout(new net.miginfocom.swing.MigLayout("wrap 2", "[grow, fill]10[grow, fill]", "[]10[]"));
+    public FormPanel(DefaultTableModel tableModel) {
+        this.tableModel = tableModel;
+        System.out.println("Model identity in FormPanel: " + System.identityHashCode(tableModel)); // Debug
+        //        FlatLaf.install(); // for FlatDarkOrange theme
+    //    setLayout(new net.miginfocom.swing.MigLayout("wrap 2", "[grow, fill]10[grow, fill]", "[]10[]"));
 
        //inisialisasi
        kotakNama = new JTextField(15);
@@ -66,11 +61,21 @@ public class FormPanel extends JPanel  {
        removeButton = new JButton("Hapus Data");
 
        //table
-       String[] namaKolom = {"Nama", "No Hp", "Jenis Kelamin", "Warga Negara Asing ?", "Jenis Tabungan", "Frekuensi Transaksi", "Tanggal Lahir", "Pekerjaan", "Deskripsi"};
-       tableModel = new DefaultTableModel(namaKolom, 0);
-       table = new JTable(tableModel);
+       table = new JTable(this.tableModel);
+       System.out.println("Model identity in JTable: " + System.identityHashCode(table.getModel()));
        table.setAutoCreateRowSorter(true);
+       table.setPreferredScrollableViewportSize(new Dimension(500, 150));
+       table.setFillsViewportHeight(true);
+    //    tableModel.addRow(new Object[]{"Test", "08123456789", "Pria", "Ya", 
+    //                            "Tabungan", "10 Juta", "27-10-2024", 
+    //                            "Pegawai", "Deskripsi Test"});
+
+        System.out.println("Row count after adding dummy data: " + tableModel.getRowCount());
+
+
+       //table scroll
        JScrollPane tableScroll = new JScrollPane(table);
+       add(tableScroll, "span 2");
 
        //set Component
        add(new JLabel("Nama : "));
@@ -110,13 +115,12 @@ public class FormPanel extends JPanel  {
        add(tableScroll, "span 2");
 
 
-
-        TableServices tableServices = new TableServices(tableModel, this);
-
        //listener
-       ActionHandler actionHandler = new ActionHandler(this, tableServices);
-       addButton.addActionListener(actionHandler::handleAction);
-       removeButton.addActionListener(actionHandler::handleAction);
+       ActionHandler actionHandler = new ActionHandler(this, tableModel);
+    
+    // Register ActionHandler directly
+        addButton.addActionListener(actionHandler);
+        removeButton.addActionListener(actionHandler);
 
        itemHandler itemHandler = new itemHandler(this);
        radioPria.addItemListener(itemHandler::handleItemChange);
@@ -181,13 +185,13 @@ public class FormPanel extends JPanel  {
 
     public static void main(String[] args) {
         // Setup the FlatLaf Arc Dark Orange theme
-        FlatArcDarkOrangeIJTheme.setup();
+        // FlatArcDarkOrangeIJTheme.setup();
 
         // Run the GUI in the Event Dispatch Thread
         SwingUtilities.invokeLater(() -> {
             JFrame frame = new JFrame("Form Data");
             frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-            frame.setContentPane(new FormPanel());
+            frame.setContentPane(new FormPanel(new DefaultTableModel()));
             frame.pack();
             frame.setVisible(true);
         });
